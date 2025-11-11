@@ -278,4 +278,11 @@
 					$main[0]._poptrox.windowMargin = 50;
 				});
 
+		// Allow navigation from links inside the lightbox caption.
+			$body.on('click', '.poptrox-popup .caption a', function(event) {
+				event.preventDefault();
+				event.stopPropagation();
+				window.location.href = this.href;
+			});
+
 })(jQuery);
