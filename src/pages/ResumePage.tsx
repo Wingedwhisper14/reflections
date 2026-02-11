@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Mail, Globe, Linkedin, Github, MapPin, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Mail, Globe, Linkedin, Github, MapPin } from 'lucide-react';
 import { initialResumeData } from '../data/mockResume';
 import type { ResumeData } from '../types/resume';
 

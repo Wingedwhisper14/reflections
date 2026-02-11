@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, ArrowRight } from 'lucide-react';
 import type { Section } from '../types';
 import { Link } from 'react-router-dom';

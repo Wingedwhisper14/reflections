@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, LogOut, LayoutGrid, List, FileText } from 'lucide-react';
+import { Plus, Trash2, LogOut, List, FileText } from 'lucide-react';
 import { sections } from '../data/mockData';
 import { storage } from '../data/storage';
 import { ResumeEditor } from '../components/ResumeEditor';

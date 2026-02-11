@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { sections } from '../data/mockData';
 import type { Section } from '../types';
 import { SectionModal } from '../components/SectionModal';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { storage } from '../data/storage';
 import type { ResumeData, ResumeExperience } from '../types/resume';
 import { Save, Plus, Trash2 } from 'lucide-react';

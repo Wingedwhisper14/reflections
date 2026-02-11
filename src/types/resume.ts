@@ -28,6 +28,7 @@ export interface ResumeEducation {
     location: string;
     startDate: string;
     endDate: string;
+    grade?: string;
 }
 
 export interface ResumeSkill {
