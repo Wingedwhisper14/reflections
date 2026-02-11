@@ -1,0 +1,156 @@
+import React, { useState } from 'react';
+import { Send, ArrowLeft, Mail, Phone, User, MessageSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+export default function ContactPage() {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        message: ''
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const subject = `New Contact from ${formData.name}`;
+        const body = `Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0APhone: ${formData.phone || 'N/A'}%0D%0A%0D%0AMessage:%0D%0A${formData.message}`;
+
+        window.location.href = `mailto:ishansingh99@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    return (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
+            <Link
+                to="/"
+                className="inline-flex items-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-8 transition-colors group"
+            >
+                <ArrowLeft className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+                Back to Home
+            </Link>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className="p-8 sm:p-12">
+                    <div className="mb-10">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                            Tell me about you
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-300">
+                            I enjoy listening to people's stories. Drop me a message below.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Name */}
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Name <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <User className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    required
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-all"
+                                    placeholder="Your full name"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Email ID <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Mail className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-all"
+                                    placeholder="you@company.com"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Contact Number */}
+                        <div>
+                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Contact Number <span className="text-gray-400 font-normal">(Optional)</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Phone className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-all"
+                                    placeholder="+1 (555) 000-0000"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Question/Comment */}
+                        <div>
+                            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Question / Comment <span className="text-gray-400 font-normal">(Optional)</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute top-3 left-3 pointer-events-none">
+                                    <MessageSquare className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <textarea
+                                    id="message"
+                                    name="message"
+                                    rows={5}
+                                    value={formData.message}
+                                    onChange={handleChange}
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-all resize-none"
+                                    placeholder="What would you like to say?"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <div className="pt-4">
+                            <button
+                                type="submit"
+                                className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-xl shadow-sm text-lg font-medium text-white bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all transform hover:scale-[1.02]"
+                            >
+                                <Send className="w-5 h-5 mr-2" />
+                                Send Message
+                            </button>
+                            <p className="mt-4 text-center text-xs text-gray-400">
+                                This will open your default email client.
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+}
