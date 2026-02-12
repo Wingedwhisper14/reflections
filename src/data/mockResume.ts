@@ -8,7 +8,7 @@ export const initialResumeData: ResumeData = {
         location: 'Bangalore, India',
         phone: '+91-9986309027',
         summary: "I take ambiguous, high-friction processes and turn them into reliable, repeatable systems. Then I automate what can be automated and move to the next problem.\nCurrently exploring operations roles in India's defense sector. Interested in companies where execution complexity is the bottleneck and where someone needs to own everything that isn't core engineering.",
-        website: 'https://ishansingh.com',
+        website: 'https://ishansingh.me',
         linkedin: 'https://www.linkedin.com/in/ishan-singh-945513210/',
         github: '' // Removed as requested
     },
