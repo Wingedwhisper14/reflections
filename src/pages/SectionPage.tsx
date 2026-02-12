@@ -13,10 +13,17 @@ export default function SectionPage() {
     const [selectedImage, setSelectedImage] = useState<Item | null>(null);
 
     useEffect(() => {
-        if (id) {
-            const sectionItems = storage.getItemsBySection(id);
-            setItems(sectionItems);
-        }
+        const fetchItems = async () => {
+            if (id) {
+                try {
+                    const sectionItems = await storage.getItemsBySection(id);
+                    setItems(sectionItems);
+                } catch (error) {
+                    console.error('Failed to load items:', error);
+                }
+            }
+        };
+        fetchItems();
     }, [id]);
 
     if (!section) return <div>Section not found</div>;
@@ -130,7 +137,7 @@ export default function SectionPage() {
 
                             {/* Footer Actions */}
                             <div className="mt-auto pt-4 flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 dark:border-gray-700">
-                                <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                                <span>{new Date(item.created_at).toLocaleDateString()}</span>
                                 {item.type === 'link' && (
                                     <a
                                         href={item.content}

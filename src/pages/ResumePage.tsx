@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Download, Mail, Globe, Linkedin, Github, MapPin } from 'lucide-react';
 import { initialResumeData } from '../data/mockResume';
+import { storage } from '../data/storage';
 import type { ResumeData } from '../types/resume';
 
 export default function ResumePage() {
     const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
 
-    // In a real app, you might fetch this from localStorage or an API
     useEffect(() => {
-        const savedData = localStorage.getItem('resumeData');
-        if (savedData) {
+        const fetchResume = async () => {
             try {
-                setResumeData(JSON.parse(savedData));
-            } catch (e) {
-                console.error('Failed to parse saved resume data', e);
+                const data = await storage.getResume();
+                setResumeData(data);
+            } catch (error) {
+                console.error('Failed to load resume:', error);
             }
-        }
+        };
+        fetchResume();
     }, []);
 
     return (

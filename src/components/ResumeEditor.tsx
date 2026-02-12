@@ -8,14 +8,29 @@ export function ResumeEditor() {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        setData(storage.getResume());
+        loadResume();
     }, []);
 
-    const handleSave = () => {
+    const loadResume = async () => {
+        try {
+            const resumeData = await storage.getResume();
+            setData(resumeData);
+        } catch (error) {
+            console.error('Failed to load resume:', error);
+        }
+    };
+
+    const handleSave = async () => {
         if (!data) return;
         setSaving(true);
-        storage.saveResume(data);
-        setTimeout(() => setSaving(false), 1000);
+        try {
+            await storage.saveResume(data);
+            setTimeout(() => setSaving(false), 1000);
+        } catch (error) {
+            console.error('Failed to save resume:', error);
+            alert('Failed to save resume');
+            setSaving(false);
+        }
     };
 
 

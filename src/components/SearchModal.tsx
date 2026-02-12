@@ -13,7 +13,21 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<Item[]>([]);
     const navigate = useNavigate();
-    const allItems = storage.getItems();
+    const [allItems, setAllItems] = useState<Item[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            const fetchItems = async () => {
+                try {
+                    const items = await storage.getItems();
+                    setAllItems(items);
+                } catch (error) {
+                    console.error('Failed to load items for search:', error);
+                }
+            };
+            fetchItems();
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (query.trim()) {
@@ -27,10 +41,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         } else {
             setResults([]);
         }
-    }, [query]);
+    }, [query, allItems]);
 
     const handleResultClick = (item: Item) => {
-        navigate(`/section/${item.sectionId}`);
+        navigate(`/section/${item.section_id}`);
         onClose();
     };
 

@@ -10,6 +10,7 @@ export default function AdminDashboard() {
     const navigate = useNavigate();
     const [items, setItems] = useState<Item[]>([]);
     const [activeTab, setActiveTab] = useState<'add' | 'list' | 'resume'>('list');
+    const [isLoading, setIsLoading] = useState(false);
 
     // Form State
     const [title, setTitle] = useState('');
@@ -19,6 +20,7 @@ export default function AdminDashboard() {
     const [content, setContent] = useState('');
     const [genre, setGenre] = useState('');
     const [newGenre, setNewGenre] = useState('');
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const isAdmin = localStorage.getItem('isAdmin');
@@ -28,8 +30,14 @@ export default function AdminDashboard() {
         loadItems();
     }, [navigate]);
 
-    const loadItems = () => {
-        setItems(storage.getItems());
+    const loadItems = async () => {
+        try {
+            const data = await storage.getItems();
+            setItems(data);
+        } catch (error) {
+            console.error('Failed to load items:', error);
+            alert('Failed to load items. Check console.');
+        }
     };
 
     const handleLogout = () => {
@@ -37,7 +45,7 @@ export default function AdminDashboard() {
         navigate('/');
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!title || !content) {
@@ -45,28 +53,56 @@ export default function AdminDashboard() {
             return;
         }
 
-        const newItem: Item = {
-            id: crypto.randomUUID(),
-            sectionId,
-            type,
-            title,
-            caption,
-            content,
-            genre: newGenre || genre || undefined,
-            createdAt: Date.now(),
-        };
+        setIsLoading(true);
+        try {
+            await storage.addItem({
+                section_id: sectionId, // Updated to snake_case
+                type,
+                title,
+                caption,
+                content,
+                genre: newGenre || genre || undefined,
+                // created_at is handled by DB default
+            } as any); // Cast to any because we are omitting id/created_at which DB handles
 
-        storage.addItem(newItem);
-        loadItems();
-        resetForm();
-        setActiveTab('list');
-        alert('Item added successfully!');
+            await loadItems();
+            resetForm();
+            setActiveTab('list');
+            alert('Item added successfully!');
+        } catch (error) {
+            console.error('Error adding item:', error);
+            alert('Failed to add item');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this item?')) {
-            storage.deleteItem(id);
-            loadItems();
+            try {
+                await storage.deleteItem(id);
+                await loadItems();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                alert('Failed to delete item');
+            }
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const publicUrl = await storage.uploadImage(file);
+            setContent(publicUrl);
+            setType('photo');
+        } catch (error) {
+            console.error('Upload failed:', error);
+            alert('Image upload failed');
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -79,10 +115,10 @@ export default function AdminDashboard() {
         setType('link');
     };
 
-    // Get unique genres for the selected section to populate dropdown
+    // Get unique genres for the selected section
     const existingGenres = Array.from(new Set(
         items
-            .filter(i => i.sectionId === sectionId)
+            .filter(i => i.section_id === sectionId) // Updated
             .map(i => i.genre)
             .filter(Boolean)
     )) as string[];
@@ -152,7 +188,7 @@ export default function AdminDashboard() {
                                             <tr key={item.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{item.title}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{item.type}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{item.sectionId}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{item.section_id}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.genre || '-'}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <button
@@ -236,33 +272,20 @@ export default function AdminDashboard() {
                                 {type === 'photo' && (
                                     <div className="mb-4 space-y-4">
                                         <div className="flex items-center gap-4">
-                                            <label className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors">
-                                                <span>Upload Image</span>
+                                            <label className={`cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                                <span>{uploading ? 'Uploading...' : 'Upload Image'}</span>
                                                 <input
                                                     type="file"
                                                     accept="image/*"
                                                     className="hidden"
-                                                    onChange={async (e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            try {
-                                                                const reader = new FileReader();
-                                                                reader.onloadend = () => {
-                                                                    setContent(reader.result as string);
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            } catch (error) {
-                                                                console.error("Error reading file:", error);
-                                                                alert("Failed to upload image");
-                                                            }
-                                                        }
-                                                    }}
+                                                    onChange={handleFileUpload}
+                                                    disabled={uploading}
                                                 />
                                             </label>
-                                            <span className="text-xs text-gray-500">or paste image below (Ctrl+V)</span>
+                                            <span className="text-xs text-gray-500">or paste URL below</span>
                                         </div>
 
-                                        {content && content.startsWith('data:image') && (
+                                        {content && content.startsWith('http') && (
                                             <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                                                 <img
                                                     src={content}
@@ -284,27 +307,9 @@ export default function AdminDashboard() {
                                 <textarea
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
-                                    onPaste={async (e) => {
-                                        const items = e.clipboardData.items;
-                                        for (const item of items) {
-                                            if (item.type.indexOf('image') !== -1) {
-                                                e.preventDefault();
-                                                const file = item.getAsFile();
-                                                if (file) {
-                                                    const reader = new FileReader();
-                                                    reader.onloadend = () => {
-                                                        setContent(reader.result as string);
-                                                        setType('photo'); // Auto-switch to photo type
-                                                    };
-                                                    reader.readAsDataURL(file);
-                                                }
-                                                return;
-                                            }
-                                        }
-                                    }}
                                     className="w-full p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 font-mono text-sm"
                                     rows={4}
-                                    placeholder={type === 'photo' ? 'Paste image here, or enter URL...' : type === 'link' ? 'https://example.com' : 'Write something...'}
+                                    placeholder={type === 'photo' ? 'Enter URL or Upload...' : type === 'link' ? 'https://example.com' : 'Write something...'}
                                     required
                                 />
                             </div>
@@ -345,9 +350,10 @@ export default function AdminDashboard() {
                             <div className="pt-4">
                                 <button
                                     type="submit"
-                                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                                    disabled={isLoading || uploading}
+                                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50"
                                 >
-                                    Post Content
+                                    {isLoading ? 'Saving...' : 'Post Content'}
                                 </button>
                             </div>
                         </form>

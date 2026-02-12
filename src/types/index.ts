@@ -20,11 +20,11 @@ export type ItemType = 'link' | 'photo' | 'article';
 
 export interface Item {
     id: string;
-    sectionId: SectionId;
-    genre?: string; // e.g., "Philosophy", "Tech", "Sci-Fi"
+    section_id: SectionId; // Renamed from sectionId
+    genre?: string;
     type: ItemType;
     title: string;
     caption?: string;
-    content: string; // URL for link/photo, or Markdown/Text for article
-    createdAt: number;
+    content: string;
+    created_at: string; // Renamed from createdAt and changed to string (ISO)
 }

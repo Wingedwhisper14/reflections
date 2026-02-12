@@ -60,20 +60,20 @@ export const sections: Section[] = [
 export const initialItems: Item[] = [
     {
         id: '1',
-        sectionId: 'explorations',
+        section_id: 'explorations',
         type: 'article',
         title: 'Welcome to my Explorations',
         caption: 'A first post in this new section.',
         content: 'This is where I explore new ideas and concepts.',
-        createdAt: Date.now(),
+        created_at: new Date().toISOString(),
     },
     {
         id: '2',
-        sectionId: 'photography',
+        section_id: 'photography',
         type: 'photo',
         title: 'Mountain View',
         caption: 'A beautiful view of the mountains.',
         content: 'https://images.unsplash.com/photo-1767854507594-424e6a844672?auto=format&fit=crop&q=80',
-        createdAt: Date.now(),
+        created_at: new Date().toISOString(),
     }
 ];
