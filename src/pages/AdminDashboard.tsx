@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, LogOut, List, FileText } from 'lucide-react';
+import { Plus, Trash2, LogOut, List, FileText, Edit2 } from 'lucide-react';
 import { sections } from '../data/mockData';
 import { storage } from '../data/storage';
 import { ResumeEditor } from '../components/ResumeEditor';
@@ -13,6 +13,7 @@ export default function AdminDashboard() {
     const [isLoading, setIsLoading] = useState(false);
 
     // Form State
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [title, setTitle] = useState('');
     const [caption, setCaption] = useState('');
     const [type, setType] = useState<ItemType>('link');
@@ -56,27 +57,46 @@ export default function AdminDashboard() {
 
         setIsLoading(true);
         try {
-            await storage.addItem({
-                section_id: sectionId, // Updated to snake_case
+            const itemData = {
+                section_id: sectionId,
                 type,
                 title,
                 caption,
                 content,
                 genre: newGenre || genre || undefined,
                 image: coverImage || undefined,
-                // created_at is handled by DB default
-            } as any); // Cast to any because we are omitting id/created_at which DB handles
+            };
+
+            if (editingId) {
+                await storage.updateItem(editingId, itemData);
+                alert('Item updated successfully!');
+            } else {
+                await storage.addItem(itemData as any);
+                alert('Item added successfully!');
+            }
 
             await loadItems();
             resetForm();
             setActiveTab('list');
-            alert('Item added successfully!');
         } catch (error) {
-            console.error('Error adding item:', error);
-            alert('Failed to add item');
+            console.error('Error saving item:', error);
+            alert('Failed to save item');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleEdit = (item: Item) => {
+        setEditingId(item.id);
+        setTitle(item.title);
+        setCaption(item.caption || '');
+        setType(item.type);
+        setSectionId(item.section_id);
+        setContent(item.content);
+        setGenre(item.genre || '');
+        setNewGenre('');
+        setCoverImage(item.image || '');
+        setActiveTab('add');
     };
 
     const handleDelete = async (id: string) => {
@@ -113,6 +133,7 @@ export default function AdminDashboard() {
     };
 
     const resetForm = () => {
+        setEditingId(null);
         setTitle('');
         setCaption('');
         setContent('');
@@ -125,7 +146,7 @@ export default function AdminDashboard() {
     // Get unique genres for the selected section
     const existingGenres = Array.from(new Set(
         items
-            .filter(i => i.section_id === sectionId) // Updated
+            .filter(i => i.section_id === sectionId)
             .map(i => i.genre)
             .filter(Boolean)
     )) as string[];
@@ -146,7 +167,7 @@ export default function AdminDashboard() {
                 {/* Tabs */}
                 <div className="flex border-b border-gray-200 dark:border-gray-700">
                     <button
-                        onClick={() => setActiveTab('list')}
+                        onClick={() => { setActiveTab('list'); resetForm(); }}
                         className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'list'
                             ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -161,10 +182,11 @@ export default function AdminDashboard() {
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                     >
-                        <Plus className="w-4 h-4" /> Add New Item
+                        {editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        {editingId ? 'Edit Item' : 'Add New Item'}
                     </button>
                     <button
-                        onClick={() => setActiveTab('resume')}
+                        onClick={() => { setActiveTab('resume'); resetForm(); }}
                         className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'resume'
                             ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -197,10 +219,18 @@ export default function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{item.type}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{item.section_id}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.genre || '-'}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                                    <button
+                                                        onClick={() => handleEdit(item)}
+                                                        className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
                                                     <button
                                                         onClick={() => handleDelete(item.id)}
                                                         className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                                                        title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
@@ -399,13 +429,22 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <div className="pt-4">
+                            <div className="pt-4 flex gap-4">
+                                {editingId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { resetForm(); setActiveTab('list'); }}
+                                        className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                                    >
+                                        Cancel Edit
+                                    </button>
+                                )}
                                 <button
                                     type="submit"
                                     disabled={isLoading || uploading}
-                                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50"
+                                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50"
                                 >
-                                    {isLoading ? 'Saving...' : 'Post Content'}
+                                    {isLoading ? 'Saving...' : editingId ? 'Update Item' : 'Post Content'}
                                 </button>
                             </div>
                         </form>

@@ -28,6 +28,18 @@ export const storage = {
         return data;
     },
 
+    updateItem: async (id: string, item: Partial<Item>) => {
+        const { data, error } = await supabase
+            .from('items')
+            .update(item)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
     deleteItem: async (id: string) => {
         const { error } = await supabase
             .from('items')
