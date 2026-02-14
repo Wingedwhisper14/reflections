@@ -103,14 +103,41 @@ export default function SectionPage() {
                         )}
 
                         {item.type === 'link' && (
-                            <div className="h-48 bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6 border-b border-gray-100 dark:border-gray-700">
-                                <ExternalLink className="w-12 h-12 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                            <div className="relative group/image overflow-hidden">
+                                {item.image ? (
+                                    <div className="h-48 w-full relative overflow-hidden">
+                                        <img
+                                            src={item.image}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                            <ExternalLink className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md w-8 h-8" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="h-48 bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6 border-b border-gray-100 dark:border-gray-700">
+                                        <ExternalLink className="w-12 h-12 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {item.type === 'article' && (
-                            <div className="h-48 bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6 border-b border-gray-100 dark:border-gray-700">
-                                <FileText className="w-12 h-12 text-gray-400 group-hover:text-amber-500 transition-colors" />
+                            <div className="relative group/image overflow-hidden">
+                                {item.image ? (
+                                    <div className="h-48 w-full relative overflow-hidden">
+                                        <img
+                                            src={item.image}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="h-48 bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6 border-b border-gray-100 dark:border-gray-700">
+                                        <FileText className="w-12 h-12 text-gray-400 group-hover:text-amber-500 transition-colors" />
+                                    </div>
+                                )}
                             </div>
                         )}
 

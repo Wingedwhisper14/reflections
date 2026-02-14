@@ -27,4 +27,5 @@ export interface Item {
     caption?: string;
     content: string;
     created_at: string; // Renamed from createdAt and changed to string (ISO)
+    image?: string; // Optional cover image for links and articles
 }

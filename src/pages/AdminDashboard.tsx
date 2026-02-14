@@ -20,6 +20,7 @@ export default function AdminDashboard() {
     const [content, setContent] = useState('');
     const [genre, setGenre] = useState('');
     const [newGenre, setNewGenre] = useState('');
+    const [coverImage, setCoverImage] = useState('');
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
@@ -62,6 +63,7 @@ export default function AdminDashboard() {
                 caption,
                 content,
                 genre: newGenre || genre || undefined,
+                image: coverImage || undefined,
                 // created_at is handled by DB default
             } as any); // Cast to any because we are omitting id/created_at which DB handles
 
@@ -89,15 +91,19 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'content' | 'coverInfo') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setUploading(true);
         try {
             const publicUrl = await storage.uploadImage(file);
-            setContent(publicUrl);
-            setType('photo');
+            if (target === 'content') {
+                setContent(publicUrl);
+                setType('photo');
+            } else {
+                setCoverImage(publicUrl);
+            }
         } catch (error) {
             console.error('Upload failed:', error);
             alert('Image upload failed');
@@ -113,6 +119,7 @@ export default function AdminDashboard() {
         setGenre('');
         setNewGenre('');
         setType('link');
+        setCoverImage('');
     };
 
     // Get unique genres for the selected section
@@ -278,7 +285,7 @@ export default function AdminDashboard() {
                                                     type="file"
                                                     accept="image/*"
                                                     className="hidden"
-                                                    onChange={handleFileUpload}
+                                                    onChange={(e) => handleFileUpload(e, 'content')}
                                                     disabled={uploading}
                                                 />
                                             </label>
@@ -313,6 +320,51 @@ export default function AdminDashboard() {
                                     required
                                 />
                             </div>
+
+                            {/* Cover Image for Articles and Links */}
+                            {(type === 'article' || type === 'link') && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Cover Image (Optional)</label>
+                                    <div className="mb-4 space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            <label className={`cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                                <span>{uploading ? 'Uploading...' : 'Upload Cover Image'}</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => handleFileUpload(e, 'coverInfo')}
+                                                    disabled={uploading}
+                                                />
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Or paste image URL"
+                                                value={coverImage}
+                                                onChange={(e) => setCoverImage(e.target.value)}
+                                                className="flex-1 p-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 text-sm"
+                                            />
+                                        </div>
+
+                                        {coverImage && (
+                                            <div className="relative w-full h-48 bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                                                <img
+                                                    src={coverImage}
+                                                    alt="Cover Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCoverImage('')}
+                                                    className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black/70"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
