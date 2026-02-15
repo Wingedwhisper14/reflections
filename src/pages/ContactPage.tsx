@@ -26,11 +26,7 @@ export default function ContactPage() {
         const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
         const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-        console.log('Sending email with:', {
-            serviceId: !!serviceId,
-            templateId: !!templateId,
-            publicKey: !!publicKey
-        });
+        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
         try {
             // 1. Store in Supabase
