@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { Item } from '../types';
+import type { Item, Message } from '../types';
 import type { ResumeData } from '../types/resume';
 import { initialResumeData } from './mockResume';
 
@@ -108,5 +108,27 @@ export const storage = {
             .getPublicUrl(filePath);
 
         return data.publicUrl;
+    },
+
+    // Messages
+    getMessages: async (): Promise<Message[]> => {
+        const { data, error } = await supabase
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data || [];
+    },
+
+    addMessage: async (message: Omit<Message, 'id' | 'created_at'>) => {
+        const { data, error } = await supabase
+            .from('messages')
+            .insert(message)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
     }
 };

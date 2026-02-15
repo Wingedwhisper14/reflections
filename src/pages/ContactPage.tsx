@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Send, ArrowLeft, Mail, Phone, User, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import emailjs from '@emailjs/browser';
+import { storage } from '../data/storage';
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
@@ -9,14 +11,36 @@ export default function ContactPage() {
         phone: '',
         message: ''
     });
+    const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setStatus('sending');
 
-        const subject = `New Contact from ${formData.name}`;
-        const body = `Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0APhone: ${formData.phone || 'N/A'}%0D%0A%0D%0AMessage:%0D%0A${formData.message}`;
+        try {
+            // 1. Store in Supabase
+            await storage.addMessage(formData);
 
-        window.location.href = `mailto:ishansingh99@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+            // 2. Send Email via EmailJS
+            await emailjs.send(
+                import.meta.env.VITE_EMAILJS_SERVICE_ID,
+                import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+                {
+                    name: formData.name,
+                    email: formData.email,
+                    phone: formData.phone || 'N/A',
+                    message: formData.message,
+                },
+                import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+            );
+
+            setStatus('success');
+            setFormData({ name: '', email: '', phone: '', message: '' });
+            setTimeout(() => setStatus('idle'), 5000);
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            setStatus('error');
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -135,18 +159,28 @@ export default function ContactPage() {
                             </div>
                         </div>
 
+                        {/* Status Message */}
+                        {status === 'success' && (
+                            <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-medium text-center">
+                                Message sent successfully! I'll get back to you soon.
+                            </div>
+                        )}
+                        {status === 'error' && (
+                            <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm font-medium text-center">
+                                Something went wrong. Please try again later or email me directly at ishansingh99@gmail.com
+                            </div>
+                        )}
+
                         {/* Submit Button */}
                         <div className="pt-4">
                             <button
                                 type="submit"
-                                className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-xl shadow-sm text-lg font-medium text-white bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all transform hover:scale-[1.02]"
+                                disabled={status === 'sending'}
+                                className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-xl shadow-sm text-lg font-medium text-white bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                <Send className="w-5 h-5 mr-2" />
-                                Send Message
+                                <Send className={`w-5 h-5 mr-2 ${status === 'sending' ? 'animate-pulse' : ''}`} />
+                                {status === 'sending' ? 'Sending...' : 'Send Message'}
                             </button>
-                            <p className="mt-4 text-center text-xs text-gray-400">
-                                This will open your default email client.
-                            </p>
                         </div>
                     </form>
                 </div>

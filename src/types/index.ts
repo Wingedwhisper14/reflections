@@ -29,3 +29,12 @@ export interface Item {
     created_at: string; // Renamed from createdAt and changed to string (ISO)
     image?: string; // Optional cover image for links and articles
 }
+
+export interface Message {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    message: string;
+    created_at: string;
+}

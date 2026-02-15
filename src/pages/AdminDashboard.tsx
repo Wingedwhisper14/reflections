@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, LogOut, List, FileText, Edit2 } from 'lucide-react';
+import { Plus, Trash2, LogOut, List, FileText, Edit2, Mail } from 'lucide-react';
 import { sections } from '../data/mockData';
 import { storage } from '../data/storage';
 import { ResumeEditor } from '../components/ResumeEditor';
-import type { Item, ItemType, SectionId } from '../types';
+import type { Item, ItemType, SectionId, Message } from '../types';
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
     const [items, setItems] = useState<Item[]>([]);
-    const [activeTab, setActiveTab] = useState<'add' | 'list' | 'resume'>('list');
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [activeTab, setActiveTab] = useState<'add' | 'list' | 'resume' | 'inbox'>('list');
     const [isLoading, setIsLoading] = useState(false);
 
     // Form State
@@ -30,6 +31,7 @@ export default function AdminDashboard() {
             navigate('/admin');
         }
         loadItems();
+        loadMessages();
     }, [navigate]);
 
     const loadItems = async () => {
@@ -38,7 +40,16 @@ export default function AdminDashboard() {
             setItems(data);
         } catch (error) {
             console.error('Failed to load items:', error);
-            alert('Failed to load items. Check console.');
+            // Alert omitted to avoid spamming alerts if one fails
+        }
+    };
+
+    const loadMessages = async () => {
+        try {
+            const data = await storage.getMessages();
+            setMessages(data);
+        } catch (error) {
+            console.error('Failed to load messages:', error);
         }
     };
 
@@ -165,10 +176,10 @@ export default function AdminDashboard() {
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 {/* Tabs */}
-                <div className="flex border-b border-gray-200 dark:border-gray-700">
+                <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
                     <button
                         onClick={() => { setActiveTab('list'); resetForm(); }}
-                        className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'list'
+                        className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'list'
                             ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
@@ -177,7 +188,7 @@ export default function AdminDashboard() {
                     </button>
                     <button
                         onClick={() => setActiveTab('add')}
-                        className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'add'
+                        className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'add'
                             ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
@@ -187,18 +198,60 @@ export default function AdminDashboard() {
                     </button>
                     <button
                         onClick={() => { setActiveTab('resume'); resetForm(); }}
-                        className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'resume'
+                        className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'resume'
                             ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                     >
                         <FileText className="w-4 h-4" /> Resume
                     </button>
+                    <button
+                        onClick={() => { setActiveTab('inbox'); loadMessages(); }}
+                        className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'inbox'
+                            ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                            }`}
+                    >
+                        <Mail className="w-4 h-4" /> Inbox ({messages.length})
+                    </button>
                 </div>
 
                 <div className="p-6">
                     {activeTab === 'resume' ? (
                         <ResumeEditor />
+                    ) : activeTab === 'inbox' ? (
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-semibold mb-4">Messages ({messages.length})</h2>
+                            <div className="space-y-4">
+                                {messages.map((msg) => (
+                                    <div key={msg.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h3 className="font-semibold text-gray-900 dark:text-white">{msg.name}</h3>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    <a href={`mailto:${msg.email}`} className="hover:text-blue-500 transition-colors">{msg.email}</a>
+                                                    {msg.phone && <span className="mx-2">•</span>}
+                                                    {msg.phone && (
+                                                        <a href={`tel:${msg.phone}`} className="hover:text-blue-500 transition-colors">
+                                                            {msg.phone}
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-gray-400">
+                                                {new Date(msg.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{msg.message}</p>
+                                    </div>
+                                ))}
+                                {messages.length === 0 && (
+                                    <div className="text-center py-12 text-gray-500">
+                                        No messages yet.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     ) : activeTab === 'list' ? (
                         <div className="space-y-4">
                             <div className="overflow-x-auto">
