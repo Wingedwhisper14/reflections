@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, ArrowLeft, Mail, Phone, User, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
@@ -13,25 +13,44 @@ export default function ContactPage() {
     });
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
+    useEffect(() => {
+        // Initialize EmailJS with Public Key
+        emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus('sending');
 
+        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+        console.log('Sending email with:', {
+            serviceId: !!serviceId,
+            templateId: !!templateId,
+            publicKey: !!publicKey
+        });
+
         try {
             // 1. Store in Supabase
-            await storage.addMessage(formData);
+            try {
+                await storage.addMessage(formData);
+            } catch (storageError) {
+                console.error('Supabase save failed (non-critical):', storageError);
+                // Continue to send email even if storage fails
+            }
 
             // 2. Send Email via EmailJS
             await emailjs.send(
-                import.meta.env.VITE_EMAILJS_SERVICE_ID,
-                import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+                serviceId,
+                templateId,
                 {
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone || 'N/A',
                     message: formData.message,
-                },
-                import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+                }
             );
 
             setStatus('success');
