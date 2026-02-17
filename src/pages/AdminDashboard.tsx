@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, LogOut, List, FileText, Edit2, Mail } from 'lucide-react';
 import { sections } from '../data/mockData';
 import { storage } from '../data/storage';
 import { ResumeEditor } from '../components/ResumeEditor';
+import { useAuth } from '../contexts/AuthContext';
 import type { Item, ItemType, SectionId, Message } from '../types';
 
 export default function AdminDashboard() {
-    const navigate = useNavigate();
+    const { signOut } = useAuth();
     const [items, setItems] = useState<Item[]>([]);
     const [messages, setMessages] = useState<Message[]>([]);
     const [activeTab, setActiveTab] = useState<'add' | 'list' | 'resume' | 'inbox'>('list');
@@ -26,13 +26,9 @@ export default function AdminDashboard() {
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
-        const isAdmin = localStorage.getItem('isAdmin');
-        if (isAdmin !== 'true') {
-            navigate('/admin');
-        }
         loadItems();
         loadMessages();
-    }, [navigate]);
+    }, []);
 
     const loadItems = async () => {
         try {
@@ -53,9 +49,12 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('isAdmin');
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            await signOut();
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
