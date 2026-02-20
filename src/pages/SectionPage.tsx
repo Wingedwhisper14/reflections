@@ -190,23 +190,43 @@ export default function SectionPage() {
             {/* Image Modal */}
             {selectedImage && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
                     onClick={() => setSelectedImage(null)}
                 >
-                    <div className="max-w-5xl w-full max-h-[90vh] overflow-hidden relative">
-                        <img
-                            src={selectedImage.content}
-                            alt={selectedImage.title}
-                            className="w-full h-full object-contain max-h-[85vh]"
-                        />
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/60 text-white backdrop-blur-md">
-                            <h3 className="text-lg font-bold">{selectedImage.title}</h3>
-                            {selectedImage.caption && <p className="text-sm opacity-80">{selectedImage.caption}</p>}
+                    <div
+                        className="max-w-6xl w-full max-h-[90vh] flex flex-col items-center justify-center relative bg-transparent"
+                        onClick={(e) => e.stopPropagation()} // Prevent clicking inner content from closing the modal
+                    >
+                        {/* Image Container */}
+                        <div className="relative w-full flex-grow flex items-center justify-center overflow-hidden mb-6">
+                            <img
+                                src={selectedImage.content}
+                                alt={selectedImage.title}
+                                className="max-w-full max-h-[75vh] object-contain rounded-md shadow-2xl"
+                            />
                         </div>
+
+                        {/* Text Container (Below Image) */}
+                        <div className="w-full max-w-3xl text-center px-4">
+                            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">
+                                {selectedImage.title}
+                            </h3>
+                            {selectedImage.caption && (
+                                <p className="text-gray-300 text-lg leading-relaxed font-light">
+                                    {selectedImage.caption}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Close Button */}
                         <button
-                            className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70"
+                            onClick={() => setSelectedImage(null)}
+                            className="absolute -top-4 -right-2 md:top-0 md:-right-8 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+                            aria-label="Close"
                         >
-                            <ArrowLeft className="w-6 h-6" />
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
                 </div>
