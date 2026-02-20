@@ -198,17 +198,17 @@ export default function SectionPage() {
                         onClick={(e) => e.stopPropagation()} // Prevent clicking inner content from closing the modal
                     >
                         {/* Image Container */}
-                        <div className="relative w-full flex-grow flex items-center justify-center overflow-hidden mb-6">
+                        <div className="relative w-full flex-grow flex items-center justify-center overflow-hidden mb-8">
                             <img
                                 src={selectedImage.content}
                                 alt={selectedImage.title}
-                                className="max-w-full max-h-[75vh] object-contain rounded-md shadow-2xl"
+                                className="max-w-full max-h-[70vh] object-contain rounded-md shadow-2xl"
                             />
                         </div>
 
                         {/* Text Container (Below Image) */}
-                        <div className="w-full max-w-3xl text-center px-4">
-                            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">
+                        <div className="w-full max-w-3xl text-center px-4 mt-4 pb-8">
+                            <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
                                 {selectedImage.title}
                             </h3>
                             {selectedImage.caption && (
