@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import posthog from 'posthog-js';
 
 interface AuthContextType {
     session: Session | null;
@@ -16,19 +17,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const handleAuthChange = (session: Session | null) => {
+        setSession(session);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        setLoading(false);
+
+        // PostHog Admin Opt-out
+        if (currentUser) {
+            // Either identify them or opt them out so they don't skew analytics
+            posthog.opt_out_capturing();
+            // Alternatively: posthog.identify(currentUser.id, { email: currentUser.email, role: 'admin' });
+        } else {
+            posthog.opt_in_capturing();
+        }
+    };
+
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
+            handleAuthChange(session);
         });
 
         // Listen for changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
+            handleAuthChange(session);
         });
 
         return () => subscription.unsubscribe();
@@ -36,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signOut = async () => {
         await supabase.auth.signOut();
+        posthog.reset(); // Reset PostHog session on logout
     };
 
     const value = {
